@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Cron job tự động cập nhật trạng thái phòng họp -->
     <record id="ir_cron_update_meeting_room_status" model="ir.cron">

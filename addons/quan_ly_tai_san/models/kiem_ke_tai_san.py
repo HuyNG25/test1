@@ -1,4 +1,4 @@
-﻿from odoo import _, api, fields, models
+from odoo import _, api, fields, models
 
 class KiemKeTaiSan(models.Model):
     _name = 'kiem_ke_tai_san'

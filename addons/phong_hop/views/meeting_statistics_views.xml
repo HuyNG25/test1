@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Graph view for statistics - Biểu đồ thống kê sử dụng phòng họp -->
     <!-- Trục X: Thời gian (ngày), Trục Y: Số giờ mượn, Cột: Phòng họp -->

@@ -1,4 +1,4 @@
-﻿from odoo import _, api, fields, models
+from odoo import _, api, fields, models
 
 class LichSuKyThuat(models.Model):
     _name = 'lich_su_ky_thuat'
