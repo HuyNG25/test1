@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_meeting_booking_tree" model="ir.ui.view">
+        <field name="name">meeting.booking.tree</field>
+        <field name="model">meeting.booking</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách đặt phòng" 
+                  decoration-success="state == 'approved' and not is_in_progress" 
+                  decoration-muted="state in ['rejected', 'cancelled']" 
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'approved' and is_in_progress">
+                <field name="meeting_room_id"/>
+                <field name="start_time"/>
+                <field name="end_time"/>
+                <field name="organizer_id"/>
+                <field name="total_attendees"/>
+                <field name="description"/>
+                <field name="is_in_progress" invisible="1"/>
+                <field name="state" widget="badge" 
+                       decoration-success="state == 'approved'" 
+                       decoration-danger="state == 'rejected'" 
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state == 'cancelled'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_meeting_booking_form" model="ir.ui.view">
+        <field name="name">meeting.booking.form</field>
+        <field name="model">meeting.booking</field>
+        <field name="arch" type="xml">
+            <form string="Đặt phòng">
+                <header>
+                    <button name="action_approve" string="Phê duyệt" type="object" class="oe_highlight" 
+                            attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('user_can_approve_ui', '=', False)]}"/>
+                    <button name="action_reject" string="Từ chối" type="object" 
+                            attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('user_can_approve_ui', '=', False)]}"/>
+                    <button name="action_cancel" string="Hủy" type="object" class="btn-danger"
+                            attrs="{'invisible': ['|', ('state', 'in', ['cancelled', 'rejected']), '&amp;', ('is_booking_creator', '=', False), ('user_can_manage_booking_ui', '=', False)]}"/>
+                    <button name="action_reset_to_draft" string="Đặt lại chờ duyệt" type="object" 
+                            attrs="{'invisible': ['|', ('state', '=', 'draft'), ('user_can_approve_ui', '=', False)]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-check-circle"
+                                attrs="{'invisible': [('is_in_progress', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text text-success">Đang diễn ra</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="description" class="oe_edit_only"/>
+                        <h1>
+                            <field name="description" placeholder="Mục đích cuộc họp..." attrs="{'readonly': [('state', '=', 'cancelled')]}"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="meeting_room_id" attrs="{'readonly': [('state', '=', 'cancelled')]}"/>
+                            <field name="organizer_id" attrs="{'readonly': [('state', '=', 'cancelled')]}"/>
+                            <field name="total_attendees" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="start_time" attrs="{'readonly': [('state', '=', 'cancelled')]}"/>
+                            <field name="end_time" attrs="{'readonly': [('state', '=', 'cancelled')]}"/>
+                            <field name="is_in_progress" invisible="1"/>
+                            <!-- Permission fields for UI visibility -->
+                            <field name="user_can_approve_ui" invisible="1"/>
+                            <field name="user_can_manage_booking_ui" invisible="1"/>
+                            <field name="is_booking_creator" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Người tham gia">
+                            <field name="participant_employee_ids" widget="many2many_tags" attrs="{'readonly': [('state', '=', 'cancelled')]}">
+                                <tree>
+                                    <field name="ma_dinh_danh"/>
+                                    <field name="ho_ten"/>
+                                    <field name="email"/>
+                                    <field name="so_dien_thoai"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <!-- TAB CHỌN TÀI SẢN MƯỢN -->
+                        <page string="Tài sản mượn">
+                            <group>
+                                <field name="meeting_room_id" invisible="1"/>
+                                <field name="tai_san_muon_ids" widget="many2many_tags" 
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                    <tree>
+                                        <field name="tai_san_id"/>
+                                        <field name="don_vi_id"/>
+                                        <field name="trang_thai"/>
+                                    </tree>
+                                </field>
+                            </group>
+                            <group string="Đơn mượn tài sản (sau khi duyệt)" attrs="{'invisible': [('don_muon_tai_san_id', '=', False)]}">
+                                <field name="don_muon_tai_san_id" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                    
+                    <group string="Thông tin phê duyệt" attrs="{'invisible': [('state', '=', 'draft')]}">
+                        <group>
+                            <field name="approved_by"/>
+                            <field name="approved_date"/>
+                        </group>
+                        <group attrs="{'invisible': [('state', '!=', 'cancelled')]}">
+                            <field name="cancelled_by"/>
+                            <field name="cancelled_date"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Calendar View -->
+    <record id="view_meeting_booking_calendar" model="ir.ui.view">
+        <field name="name">meeting.booking.calendar</field>
+        <field name="model">meeting.booking</field>
+        <field name="arch" type="xml">
+            <calendar string="Lịch đặt phòng" date_start="start_time" date_stop="end_time" color="state" mode="month">
+                <field name="description"/>
+                <field name="meeting_room_id"/>
+                <field name="organizer_id"/>
+                <field name="total_attendees"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+    
+    <!-- Search View -->
+    <record id="view_meeting_booking_search" model="ir.ui.view">
+        <field name="name">meeting.booking.search</field>
+        <field name="model">meeting.booking</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm đặt phòng">
+                <field name="description"/>
+                <field name="meeting_room_id"/>
+                <field name="organizer_id"/>
+                <field name="participant_employee_ids"/>
+                
+                <!-- Status filters -->
+                <filter string="Chờ duyệt" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Đã duyệt" name="filter_approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Từ chối" name="filter_rejected" domain="[('state', '=', 'rejected')]"/>
+                <filter string="Đã hủy" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
+                
+                <separator/>
+                
+                <!-- Date range filters for statistics -->
+                <filter string="Hôm nay" name="today"
+                        domain="[('start_time', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                                ('start_time', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="Tuần này" name="this_week"
+                        domain="[('start_time', '&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d 00:00:00')),
+                                ('start_time', '&lt;', (context_today() + datetime.timedelta(days=7-context_today().weekday())).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="Tháng này" name="this_month"
+                        domain="[('start_time', '&gt;=', context_today().strftime('%Y-%m-01 00:00:00')),
+                                ('start_time', '&lt;', (context_today().replace(day=1) + datetime.timedelta(days=32)).replace(day=1).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter string="Năm nay" name="this_year"
+                        domain="[('start_time', '&gt;=', context_today().strftime('%Y-01-01 00:00:00')),
+                                ('start_time', '&lt;', (context_today().replace(month=1, day=1) + datetime.timedelta(days=366)).replace(month=1, day=1).strftime('%Y-%m-%d 00:00:00'))]"/>
+                
+                <!-- Group by -->
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Phòng họp" name="group_room" context="{'group_by': 'meeting_room_id'}"/>
+                    <filter string="Người tổ chức" name="group_organizer" context="{'group_by': 'organizer_id'}"/>
+                    <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+                    <separator/>
+                    <filter string="Ngày" name="group_by_day" context="{'group_by': 'start_time:day'}"/>
+                    <filter string="Tuần" name="group_by_week" context="{'group_by': 'start_time:week'}"/>
+                    <filter string="Tháng" name="group_by_month" context="{'group_by': 'start_time:month'}"/>
+                    <filter string="Năm" name="group_by_year" context="{'group_by': 'start_time:year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_meeting_booking" model="ir.actions.act_window">
+        <field name="name">Mượn phòng</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">meeting.booking</field>
+        <field name="view_mode">tree,form,calendar</field>
+        <field name="search_view_id" ref="view_meeting_booking_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Tạo lịch đặt phòng mới
+            </p>
+        </field>
+    </record>
+
+</odoo>

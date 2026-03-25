@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_nhan_vien_form_inherit_van_ban" model="ir.ui.view">
+        <field name="name">nhan_vien.form.inherit.van.ban</field>
+        <field name="model">nhan_vien</field>
+        <field name="inherit_id" ref="nhan_su.view_nhan_vien_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Văn bản đến xử lý">
+                    <field name="van_ban_den_ids"/>
+                </page>
+                <page string="Văn bản đi gửi">
+                    <field name="van_ban_di_ids"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
